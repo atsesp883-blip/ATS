@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* --- Simple Login Page Style --- */
+        #loginPage {
+            position: fixed; 
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 320px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .login-box h2 {
+            margin-bottom: 20px;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-error {
+            margin-top: 10px;
+            color: red;
+            font-size: 14px;
+            display:none;
+        }
+
+        /* Hide dashboard until login */
+        #dashboard { display: none; }
+    </style>
+</head>
+<body>
+
+<!-- ===================== LOGIN PAGE ===================== -->
+<div id="loginPage">
+    <div class="login-box">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div class="login-error" id="loginError">Incorrect username or password</div>
+    </div>
+</div>
+<!-- ===================================================== -->
+
+<!-- Language Selection Modal -->
+<div id="languageModal" class="modal">
+    <div class="modal-content">
+        <h2>Select Language / ជ្រើសភាសា</h2>
+        <button id="langEn">English</button>
+        <button id="langKh">ខ្មែរ</button>
+    </div>
+</div>
+
+<!-- Notification Bar -->
+<div id="notification-bar">Notification Message</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+
+    <h1 data-en="Design ATS Remote Control with Safety Condition"
+         data-kh="រចនាប្រព័ន្ធបញ្ជារ ATS ពីចម្ងាយជាមួយនឹងលក្ខខណ្ឌសុវត្ថិភាព"> 
+        Power Monitoring Dashboard 
+    </h1>
+
+    <button id="changeLangBtn" 
+        style="position: relative; float: right; margin-top: 20px; margin-bottom: 10px;
+        padding: 8px 15px; border-radius: 8px; cursor: pointer;">
+        Change Language
+    </button>
+
+    <div style="clear: both;"></div>
+
+    <div id="connection" data-en="Status: Connected" data-kh="ស្ថានភាព: តភ្ជាប់">Status: Connected</div>
+    <div id="lastUpdate">Last Update: --:--:--</div>
+
+    <!-- Display Section -->
+    <div class="grid-display">
+        <div class="card voltage" id="mainVoltageCard">
+            <h3 data-en="Main Voltage" data-kh="តង់ស្យុងប្រភពដើម">Main Voltage</h3>
+            <div id="mainVoltageValue">-- V</div>
+        </div>
+
+        <div class="card voltage" id="genVoltageCard">
+            <h3 data-en="Gen Voltage" data-kh="តង់ស្យុងប្រភពបម្រុង">Gen Voltage</h3>
+            <div id="genVoltageValue">-- V</div>
+        </div>
+
+        <div class="card current">
+            <h3 data-en="Current" data-kh="អំពែ">Current</h3>
+            <div id="currentValue">-- A</div>
+        </div>
+
+        <div class="card lamp" id="mainLamp">
+            <h3 data-en="Main Source" data-kh="ប្រភពដើម">Main Source</h3>
+            <div class="lamp-signal off"></div>
+        </div>
+
+        <div class="card lamp" id="genLamp">
+            <h3 data-en="Gen Source" data-kh="ប្រភពបម្រុង">Gen Source</h3>
+            <div class="lamp-signal off"></div>
+        </div>
+
+        <div class="card power">
+            <h3 data-en="Power" data-kh="អានុភាព">Power</h3>
+            <div id="powerValue">-- kW</div>
+        </div>
+
+        <div class="card alarm ok alarm-big">
+            <h3 data-en="Alarm" data-kh="Alarm">Alarm</h3>
+            <div id="alarmStatus">OK</div>
+        </div>
+    </div>
+
+    <!-- Control Buttons Section -->
+    <h2 style="margin-top:40px; text-align:center;" 
+        data-en="Control Buttons" data-kh="ផ្ទាំងបញ្ជាប៊ូតុង">
+        Control Buttons
+    </h2>
+
+    <div class="grid-buttons">
+        <div class="card control" id="mainRelayCard">
+            <h3 data-en="Main Relay" data-kh="ភ្ជាប់ប្រភពដើម">Main Relay</h3>
+            <button id="mainRelayBtn" class="stopped">OFF</button>
+        </div>
+
+        <div class="card control" id="genRelayCard">
+            <h3 data-en="Gen Relay" data-kh="ភ្ជាប់ប្រភពបម្រុង">Gen Relay</h3>
+            <button id="genRelayBtn" class="stopped">OFF</button>
+        </div>
+
+        <div class="card control gen-control-full" id="genControlCard">
+            <h3 data-en="Generator Control" data-kh="ម៉ាស៊ីនភ្លើង">Generator Control</h3>
+            <button id="genBtn" class="stopped" data-en="Start Generator" data-kh="បញ្ឆេះម៉ាស៊ីនភ្លើង">Start Generator</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    /* ====================== LOGIN SYSTEM ======================= */
+    function login() {
+        const user = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+        const error = document.getElementById("loginError");
+
+        if (user === "ATS" && pass === "1234") {
+            document.getElementById("loginPage").style.display = "none";
+            document.getElementById("dashboard").style.display = "block";
+        } else {
+            error.style.display = "block";
+        }
+    }
+    /* ============================================================ */
+
+
+    // ******** EXISTING CODE — NOT CHANGED ********
+    const languageModal = document.getElementById('languageModal');
+    const changeLangBtn = document.getElementById('changeLangBtn');
+
+    function setLanguage(lang) {
+        localStorage.setItem('lang', lang);
+        document.querySelectorAll('[data-en]').forEach(el=>{
+            el.textContent = lang==='en'? el.dataset.en : el.dataset.kh;
+        });
+        languageModal.style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    }
+
+    const savedLang = localStorage.getItem('lang');
+    if(savedLang){
+        setLanguage(savedLang);
+    } else {
+        languageModal.style.display = 'flex';
+    }
+
+    document.getElementById('langEn').addEventListener('click', ()=> setLanguage('en'));
+    document.getElementById('langKh').addEventListener('click', ()=> setLanguage('kh'));
+    changeLangBtn.addEventListener('click', ()=> languageModal.style.display = 'flex');
+
+    const genBtn = document.getElementById('genBtn');
+    const genControlCard = document.getElementById('genControlCard');
+
+    genBtn.addEventListener('click', () => {
+        if (genBtn.classList.contains('stopped')) {
+            genBtn.classList.remove('stopped');
+            genBtn.classList.add('running');
+            genBtn.textContent = savedLang==='kh'?'ម៉ាស៊ីនភ្លើងកំពុងដំណើរការ':'Generator Running';
+            genControlCard.style.borderColor = '#2ecc71';
+        } else {
+            genBtn.classList.remove('running');
+            genBtn.classList.add('stopped');
+            genBtn.textContent = savedLang==='kh'?'បញ្ឆេះម៉ាស៊ីនភ្លើង':'Start Generator';
+            genControlCard.style.borderColor = '#e74c3c';
+        }
+    });
+
+    const mainRelayBtn = document.getElementById('mainRelayBtn');
+    const genRelayBtn = document.getElementById('genRelayBtn');
+    const mainRelayCard = document.getElementById('mainRelayCard');
+    const genRelayCard = document.getElementById('genRelayCard');
+
+    mainRelayBtn.addEventListener('click', () => {
+        if(mainRelayBtn.classList.contains('stopped')){
+            mainRelayBtn.classList.remove('stopped');
+            mainRelayBtn.classList.add('running');
+            mainRelayBtn.textContent = 'ON';
+            mainRelayCard.style.borderColor = '#2ecc71';
+        } else {
+            mainRelayBtn.classList.remove('running');
+            mainRelayBtn.classList.add('stopped');
+            mainRelayBtn.textContent = 'OFF';
+            mainRelayCard.style.borderColor = '#e74c3c';
+        }
+    });
+
+    genRelayBtn.addEventListener('click', () => {
+        if(genRelayBtn.classList.contains('stopped')){
+            genRelayBtn.classList.remove('stopped');
+            genRelayBtn.classList.add('running');
+            genRelayBtn.textContent = 'ON';
+            genRelayCard.style.borderColor = '#2ecc71';
+        } else {
+            genRelayBtn.classList.remove('running');
+            genRelayBtn.classList.add('stopped');
+            genRelayBtn.textContent = 'OFF';
+            genRelayCard.style.borderColor = '#e74c3c';
+        }
+    });
+
+    const mainLamp = document.querySelector('#mainLamp .lamp-signal');
+    const genLamp = document.querySelector('#genLamp .lamp-signal');
+
+    function setLamp(lamp, state) {
+        if(state === 'on') {
+            lamp.classList.remove('off');
+            lamp.classList.add('on');
+        } else {
+            lamp.classList.remove('on');
+            lamp.classList.add('off');
+        }
+    }
+
+    setLamp(mainLamp, 'on');
+    setLamp(genLamp, 'off');
+
+    function showNotification(msg, type='info') {
+        const bar = document.getElementById('notification-bar');
+        bar.textContent = msg;
+        bar.className = '';
+        bar.classList.add(type, 'show');
+        setTimeout(() => { bar.classList.remove('show'); }, 3000);
+    }
+
+    showNotification('Dashboard Loaded', 'success');
+
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Khmer+OS+Battambang&display=swap" rel="stylesheet">
+<!-- Add this at the bottom of your <body>, before </body> -->
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+    // ===================== HiveMQ MQTT Setup =====================
+    const broker = 'wss://broker.hivemq.com:8000/mqtt'; // Change to your HiveMQ Cloud if needed
+    const options = {
+        username: 'ATS_ESP',         // HiveMQ username
+        password: 'ATS@esp32',       // HiveMQ password
+        keepalive: 60,
+        reconnectPeriod: 2000
+    };
+
+    // Connect
+    const client = mqtt.connect(broker, options);
+
+    client.on('connect', () => {
+        console.log('Connected to HiveMQ');
+        showNotification('Connected to HiveMQ', 'success');
+
+        // Subscribe to topics
+        client.subscribe('ats/voltage/main');
+        client.subscribe('ats/voltage/gen');
+        client.subscribe('ats/current');
+        client.subscribe('ats/power');
+        client.subscribe('ats/lamp/main');
+        client.subscribe('ats/lamp/gen');
+        client.subscribe('ats/alarm');
+    });
+
+    client.on('error', (err) => {
+        console.error('MQTT Error:', err);
+        showNotification('MQTT Connection Error', 'error');
+    });
+
+    client.on('message', (topic, message) => {
+        const payload = message.toString();
+        console.log('Received', topic, payload);
+
+        switch(topic){
+            case 'ats/voltage/main':
+                document.getElementById('mainVoltageValue').textContent = payload + ' V';
+                break;
+            case 'ats/voltage/gen':
+                document.getElementById('genVoltageValue').textContent = payload + ' V';
+                break;
+            case 'ats/current':
+                document.getElementById('currentValue').textContent = payload + ' A';
+                break;
+            case 'ats/power':
+                document.getElementById('powerValue').textContent = payload + ' kW';
+                break;
+            case 'ats/lamp/main':
+                setLamp(mainLamp, payload === 'ON' ? 'on' : 'off');
+                break;
+            case 'ats/lamp/gen':
+                setLamp(genLamp, payload === 'ON' ? 'on' : 'off');
+                break;
+            case 'ats/alarm':
+                document.getElementById('alarmStatus').textContent = payload;
+                break;
+        }
+    });
+
+    // ===================== Publish Button Commands =====================
+    function publish(topic, message){
+        if(client.connected){
+            client.publish(topic, message);
+            console.log('Published', topic, message);
+        }
+    }
+
+    // Buttons publish MQTT messages
+    genBtn.addEventListener('click', () => {
+        if(genBtn.classList.contains('stopped')){
+            publish('ats/button/gen', 'START');
+        } else {
+            publish('ats/button/gen', 'STOP');
+        }
+    });
+
+    mainRelayBtn.addEventListener('click', () => {
+        publish('ats/button/mainRelay', mainRelayBtn.classList.contains('stopped') ? 'ON' : 'OFF');
+    });
+
+    genRelayBtn.addEventListener('click', () => {
+        publish('ats/button/genRelay', genRelayBtn.classList.contains('stopped') ? 'ON' : 'OFF');
+    });
+
+</script>
+</body>
+</html>
