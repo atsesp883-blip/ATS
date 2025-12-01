@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* --- Simple Login Page Style --- */
+        #loginPage {
+            position: fixed; 
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 320px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .login-box h2 { margin-bottom: 20px; }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-error {
+            margin-top: 10px;
+            color: red;
+            font-size: 14px;
+            display:none;
+        }
+
+        /* Hide dashboard until login */
+        #dashboard { display: none; }
+        
+        /* Mode Switch */
+        .mode-switch {
+            display: inline-flex;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .mode-btn {
+            padding: 10px 30px;
+            border: none;
+            background: #f0f0f0;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .mode-btn:hover {
+            background: #0056b3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===================== LOGIN PAGE ===================== -->
+<div id="loginPage">
+    <div class="login-box">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div class="login-error" id="loginError">Incorrect username or password</div>
+    </div>
+</div>
+<!-- ===================================================== -->
+
+<!-- Language Selection Modal -->
+<div id="languageModal" class="modal">
+    <div class="modal-content">
+        <h2>Select Language / ជ្រើសភាសា</h2>
+        <button id="langEn">English</button>
+        <button id="langKh">ខ្មែរ</button>
+    </div>
+</div>
+
+<!-- Notification Bar -->
+<div id="notification-bar">Notification Message</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+
+    <h1 data-en="Design ATS Remote Control with Safety Condition"
+         data-kh="រចនាប្រព័ន្ធបញ្ជារ ATS ពីចម្ងាយជាមួយនឹងលក្ខខណ្ឌសុវត្ថិភាព"> 
+        Power Monitoring Dashboard 
+    </h1>
+
+    <button id="changeLangBtn" 
+        style="position: relative; float: right; margin-top: 20px; margin-bottom: 10px;
+        padding: 8px 15px; border-radius: 8px; cursor: pointer;">
+        Change Language
+    </button>
+
+    <div style="clear: both;"></div>
+
+    <!-- Mode Switch -->
+    <div style="text-align: center; margin: 20px 0;">
+        <h3 data-en="Control Mode" data-kh="របៀបបញ្ជា">Control Mode</h3>
+        <div class="mode-switch">
+            <button id="autoModeBtn" class="mode-btn active">AUTO</button>
+            <button id="manualModeBtn" class="mode-btn">MANUAL</button>
+        </div>
+        <div id="modeStatus" style="margin-top: 10px; font-weight: bold; color: #007bff;">Current Mode: AUTO</div>
+    </div>
+
+    <div id="connection" data-en="Status: Connected" data-kh="ស្ថានភាព: តភ្ជាប់">Status: Connected</div>
+    <div id="lastUpdate">Last Update: --:--:--</div>
+
+    <!-- Display Section -->
+    <div class="grid-display">
+        <div class="card voltage" id="mainVoltageCard">
+            <h3 data-en="Main Voltage" data-kh="តង់ស្យុងប្រភពដើម">Main Voltage</h3>
+            <div id="mainVoltageValue">-- V</div>
+        </div>
+
+        <div class="card voltage" id="genVoltageCard">
+            <h3 data-en="Gen Voltage" data-kh="តង់ស្យុងប្រភពបម្រុង">Gen Voltage</h3>
+            <div id="genVoltageValue">-- V</div>
+        </div>
+
+        <div class="card current">
+            <h3 data-en="Current" data-kh="អំពែ">Current</h3>
+            <div id="currentValue">-- A</div>
+        </div>
+
+        <div class="card lamp" id="mainLamp">
+            <h3 data-en="Main Source" data-kh="ប្រភពដើម">Main Source</h3>
+            <div class="lamp-signal off"></div>
+        </div>
+
+        <div class="card lamp" id="genLamp">
+            <h3 data-en="Gen Source" data-kh="ប្រភពបម្រុង">Gen Source</h3>
+            <div class="lamp-signal off"></div>
+        </div>
+
+        <div class="card power">
+            <h3 data-en="Power" data-kh="អានុភាព">Power</h3>
+            <div id="powerValue">-- kW</div>
+        </div>
+
+        <div class="card alarm ok alarm-big">
+            <h3 data-en="Alarm" data-kh="Alarm">Alarm</h3>
+            <div id="alarmStatus">OK</div>
+        </div>
+    </div>
+
+    <!-- Control Buttons Section -->
+    <h2 style="margin-top:40px; text-align:center;" 
+        data-en="Control Buttons" data-kh="ផ្ទាំងបញ្ជាប៊ូតុង">
+        Control Buttons
+    </h2>
+
+    <div class="grid-buttons">
+        <div class="card control" id="mainRelayCard">
+            <h3 data-en="Main Relay" data-kh="ភ្ជាប់ប្រភពដើម">Main Relay</h3>
+            <button id="mainRelayBtn" class="stopped">OFF</button>
+        </div>
+
+        <div class="card control" id="genRelayCard">
+            <h3 data-en="Gen Relay" data-kh="ភ្ជាប់ប្រភពបម្រុង">Gen Relay</h3>
+            <button id="genRelayBtn" class="stopped">OFF</button>
+        </div>
+
+        <div class="card control gen-control-full" id="genControlCard">
+            <h3 data-en="Generator Control" data-kh="ម៉ាស៊ីនភ្លើង">Generator Control</h3>
+            <button id="genBtn" class="stopped" data-en="Start Generator" data-kh="បញ្ឆេះម៉ាស៊ីនភ្លើង">Start Generator</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+    /* ====================== LOGIN SYSTEM ======================= */
+    function login() {
+        const user = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+        const error = document.getElementById("loginError");
+
+        if (user === "ATS" && pass === "1234") {
+            document.getElementById("loginPage").style.display = "none";
+            document.getElementById("dashboard").style.display = "block";
+        } else {
+            error.style.display = "block";
+        }
+    }
+    /* ============================================================ */
+
+    /* ====================== LANGUAGE SYSTEM ===================== */
+    const languageModal = document.getElementById('languageModal');
+    const changeLangBtn = document.getElementById('changeLangBtn');
+
+    function setLanguage(lang) {
+        localStorage.setItem('lang', lang);
+        document.querySelectorAll('[data-en]').forEach(el=>{
+            el.textContent = lang==='en'? el.dataset.en : el.dataset.kh;
+        });
+        languageModal.style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    }
+
+    const savedLang = localStorage.getItem('lang');
+    if(savedLang){ setLanguage(savedLang); }
+    else { languageModal.style.display = 'flex'; }
+
+    document.getElementById('langEn').addEventListener('click', ()=> setLanguage('en'));
+    document.getElementById('langKh').addEventListener('click', ()=> setLanguage('kh'));
+    changeLangBtn.addEventListener('click', ()=> languageModal.style.display = 'flex');
+
+    /* ====================== BUTTON UI LOGIC ===================== */
+    const genBtn = document.getElementById('genBtn');
+    const mainRelayBtn = document.getElementById('mainRelayBtn');
+    const genRelayBtn = document.getElementById('genRelayBtn');
+    const mainLamp = document.querySelector('#mainLamp .lamp-signal');
+    const genLamp = document.querySelector('#genLamp .lamp-signal');
+    const autoModeBtn = document.getElementById('autoModeBtn');
+    const manualModeBtn = document.getElementById('manualModeBtn');
+    const modeStatus = document.getElementById('modeStatus');
+    
+    let currentMode = 'auto';
+
+    function setLamp(lamp, state) {
+        if(state === 'on') { 
+            lamp.classList.add('on'); 
+            lamp.classList.remove('off'); 
+        } else { 
+            lamp.classList.add('off'); 
+            lamp.classList.remove('on'); 
+        }
+    }
+
+    function toggleButton(button) {
+        if (button.classList.contains('stopped')) {
+            button.classList.remove('stopped');
+            button.classList.add('running');
+            button.textContent = 'ON';
+        } else {
+            button.classList.remove('running');
+            button.classList.add('stopped');
+            button.textContent = 'OFF';
+        }
+    }
+
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification-bar');
+        notification.textContent = message;
+        notification.className = type === 'success' ? 'show success' : 'show error';
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    /* ====================== MODE SWITCH ===================== */
+    function setMode(mode) {
+        currentMode = mode;
+        
+        // Update UI
+        if (mode === 'auto') {
+            autoModeBtn.classList.add('active');
+            manualModeBtn.classList.remove('active');
+            modeStatus.textContent = 'Current Mode: AUTO';
+            modeStatus.style.color = '#007bff';
+        } else {
+            autoModeBtn.classList.remove('active');
+            manualModeBtn.classList.add('active');
+            modeStatus.textContent = 'Current Mode: MANUAL';
+            modeStatus.style.color = '#28a745';
+        }
+        
+        // Publish mode to ESP32
+        publish("ats/cmd/mode", mode);
+    }
+
+    autoModeBtn.addEventListener('click', () => setMode('auto'));
+    manualModeBtn.addEventListener('click', () => setMode('manual'));
+
+    /* ====================== UPDATE TIMESTAMP ===================== */
+    function updateTimestamp() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        document.getElementById('lastUpdate').textContent = 'Last Update: ' + timeString;
+    }
+
+    // Update timestamp every second
+    setInterval(updateTimestamp, 1000);
+
+    /* ===================== HiveMQ CLOUD MQTT ===================== */
+    const broker = "wss://d16fd8e5e1dd4b009a2f258d647172ba.s1.eu.hivemq.cloud:8884/mqtt";
+
+    const options = {
+        username: "ATS_ESP",
+        password: "ATS@esp32",
+        reconnectPeriod: 2000,
+        clean: true,
+        keepalive: 60
+    };
+
+    const client = mqtt.connect(broker, options);
+
+    client.on("connect", () => {
+        console.log("🌐 Connected to HiveMQ Cloud");
+        showNotification("Connected to HiveMQ Cloud", "success");
+
+        client.subscribe("ats/mainVoltage");
+        client.subscribe("ats/genVoltage");
+        client.subscribe("ats/current");
+        client.subscribe("ats/mode");
+        client.subscribe("ats/state/mainRelay");
+        client.subscribe("ats/state/genRelay");
+        client.subscribe("ats/state/startGen");
+        client.subscribe("ats/ack/mainRelay");
+        client.subscribe("ats/ack/genRelay");
+        client.subscribe("ats/ack/startGen");
+        
+        // Request initial states
+        client.publish("ats/request/state", "1");
+    });
+
+    client.on("message", (topic, msg) => {
+        const data = msg.toString();
+        console.log("Received:", topic, data);
+        updateTimestamp();
+
+        if (topic === "ats/mainVoltage") {
+            document.getElementById("mainVoltageValue").textContent = parseFloat(data).toFixed(1) + " V";
+        }
+
+        if (topic === "ats/genVoltage") {
+            document.getElementById("genVoltageValue").textContent = parseFloat(data).toFixed(1) + " V";
+        }
+
+        if (topic === "ats/current") {
+            const current = parseFloat(data);
+            document.getElementById("currentValue").textContent = current.toFixed(2) + " A";
+            
+            // Calculate and display power (assuming 230V)
+            const voltage = parseFloat(document.getElementById("mainVoltageValue").textContent) || 230;
+            const power = (voltage * current) / 1000; // kW
+            document.getElementById("powerValue").textContent = power.toFixed(2) + " kW";
+        }
+
+        if (topic === "ats/mode") {
+            // Mode mapping from ESP32:
+            // 0 = IDLE, 1 = MAIN_MODE, 2 = STARTING_GEN, 3 = GEN_MODE, 4 = Gen_novoltage
+            
+            // Update lamps based on mode
+            if (data === "1") { // MAIN_MODE
+                setLamp(mainLamp, "on");
+                setLamp(genLamp, "off");
+            } else if (data === "3") { // GEN_MODE
+                setLamp(mainLamp, "off");
+                setLamp(genLamp, "on");
+            } else {
+                setLamp(mainLamp, "off");
+                setLamp(genLamp, "off");
+            }
+        }
+        
+        // Handle relay state updates
+        if (topic === "ats/state/mainRelay") {
+            const isOn = data === "1";
+            if (isOn) {
+                mainRelayBtn.classList.remove('stopped');
+                mainRelayBtn.classList.add('running');
+                mainRelayBtn.textContent = 'ON';
+            } else {
+                mainRelayBtn.classList.remove('running');
+                mainRelayBtn.classList.add('stopped');
+                mainRelayBtn.textContent = 'OFF';
+            }
+        }
+        
+        if (topic === "ats/state/genRelay") {
+            const isOn = data === "1";
+            if (isOn) {
+                genRelayBtn.classList.remove('stopped');
+                genRelayBtn.classList.add('running');
+                genRelayBtn.textContent = 'ON';
+            } else {
+                genRelayBtn.classList.remove('running');
+                genRelayBtn.classList.add('stopped');
+                genRelayBtn.textContent = 'OFF';
+            }
+        }
+        
+        if (topic === "ats/state/startGen") {
+            const isOn = data === "1";
+            if (isOn) {
+                genBtn.classList.remove('stopped');
+                genBtn.classList.add('running');
+                genBtn.textContent = 'Stop Generator';
+            } else {
+                genBtn.classList.remove('running');
+                genBtn.classList.add('stopped');
+                genBtn.textContent = 'Start Generator';
+            }
+        }
+        
+        // Handle acknowledgments
+        if (topic === "ats/ack/mainRelay") {
+            console.log("Main relay ACK:", data);
+            showNotification(`Main relay ${data === "1" ? "ON" : "OFF"} confirmed`, 'success');
+        }
+        
+        if (topic === "ats/ack/genRelay") {
+            console.log("Gen relay ACK:", data);
+            showNotification(`Generator relay ${data === "1" ? "ON" : "OFF"} confirmed`, 'success');
+        }
+        
+        if (topic === "ats/ack/startGen") {
+            console.log("Start generator ACK:", data);
+            showNotification(`Generator control ${data === "1" ? "ON" : "OFF"} confirmed`, 'success');
+        }
+    });
+
+    function publish(topic, msg) {
+        if (client.connected) {
+            console.log("Publishing:", topic, msg);
+            client.publish(topic, msg);
+            showNotification(`Command sent: ${topic} = ${msg}`, 'success');
+        } else {
+            showNotification('MQTT not connected!', 'error');
+        }
+    }
+
+    /* ===================== BUTTON EVENT HANDLERS ===================== */
+    genBtn.addEventListener('click', () => {
+        const state = genBtn.classList.contains('stopped') ? "1" : "0";
+        publish("ats/cmd/startGen", state);
+        toggleButton(genBtn);
+        showNotification(`Generator control ${state === "1" ? "STARTING" : "STOPPING"}...`, 'success');
+    });
+
+    mainRelayBtn.addEventListener('click', () => {
+        const state = mainRelayBtn.classList.contains('stopped') ? "1" : "0";
+        publish("ats/cmd/mainRelay", state);
+        toggleButton(mainRelayBtn);
+        showNotification(`Main relay ${state === "1" ? "ON" : "OFF"}...`, 'success');
+    });
+
+    genRelayBtn.addEventListener('click', () => {
+        const state = genRelayBtn.classList.contains('stopped') ? "1" : "0";
+        publish("ats/cmd/genRelay", state);
+        toggleButton(genRelayBtn);
+        showNotification(`Generator relay ${state === "1" ? "ON" : "OFF"}...`, 'success');
+    });
+
+    // Handle connection status
+    client.on('error', (error) => {
+        console.error('MQTT Error:', error);
+        showNotification('MQTT Connection Error', 'error');
+    });
+
+    client.on('offline', () => {
+        showNotification('MQTT Offline', 'error');
+    });
+
+    client.on('reconnect', () => {
+        showNotification('Reconnecting to MQTT...', 'success');
+    });
+
+    // Show initial notification
+    showNotification('Dashboard Loaded', 'success');
+</script>
+
+</body>
+</html>

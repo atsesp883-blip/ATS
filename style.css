@@ -1,0 +1,341 @@
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+}
+
+body {
+    background-color: #ffffff;
+    color: #000000;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Notification Bar */
+#notification-bar {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    background-color: #f0f0f0;
+    color: #000000;
+    padding: 15px 20px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+#notification-bar.show { 
+    opacity: 1; 
+    visibility: visible; 
+}
+#notification-bar.success { 
+    background-color: #d4edda; 
+    color: #155724; 
+    border-left: 4px solid #28a745; 
+}
+#notification-bar.error { 
+    background-color: #f8d7da; 
+    color: #721c24; 
+    border-left: 4px solid #dc3545; 
+}
+
+/* Dashboard */
+#dashboard { 
+    width: 90%; 
+    max-width: 900px; 
+    margin: 30px auto 60px; 
+    display: none; 
+    position: relative;
+}
+#dashboard h1 { 
+    font-size: 36px; 
+    margin-bottom: 10px; 
+    text-align: center; 
+    font-weight: 800; 
+    color: #000; 
+}
+#dashboard h2 { 
+    font-size: 28px; 
+    margin-bottom: 15px; 
+    color: #000; 
+}
+#connection, #lastUpdate { 
+    font-size: 14px; 
+    text-align: center; 
+    margin-bottom: 8px; 
+    color: #555; 
+}
+
+/* Grid layouts */
+.grid-display, .grid-buttons { 
+    display: grid; 
+    gap: 24px; 
+    margin-top: 20px; 
+}
+.grid-display { 
+    grid-template-columns: repeat(3, 1fr); 
+}
+.grid-buttons { 
+    grid-template-columns: repeat(2, 1fr); 
+}
+
+/* Second row: Main Source, Gen Source, Power same size as top row */
+#mainLamp, #genLamp, .power {
+    min-height: 160px; /* same as top row cards */
+    padding: 25px 20px; /* same as top row */
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+    align-items: center;
+    text-align: center;
+    border-radius: 15px;
+}
+#mainLamp, #genLamp { border: 3px solid #333; }
+.power { border: 3px solid #ff7f50; }
+
+/* Alarm full width */
+.alarm-big { 
+    grid-column: 1 / 4; 
+    min-height: 200px; 
+}
+
+/* Display Cards */
+.card {
+    background-color: #f9f9f9;
+    color: #000;
+    border-radius: 15px;
+    padding: 25px 20px;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.card h3 { 
+    margin-bottom: 12px; 
+    font-size: 22px; 
+    font-weight: 700; 
+}
+.card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1); 
+}
+
+.voltage { border: 3px solid #43cea2; }
+.current { border: 3px solid #0984e3; }
+.power   { border: 3px solid #ff7f50; }
+.alarm.ok    { border: 3px solid #2ecc65; }
+.alarm.fault { border: 3px solid #e74c3c; }
+.lamp { border: 3px solid #333; }
+
+/* Lamp signals bigger */
+.lamp-signal { 
+    width: 60px; 
+    height: 60px; 
+    border-radius: 50%; 
+    border: 3px solid #555; 
+    margin-top: 20px; 
+    transition: background-color 0.3s, border-color 0.3s; 
+}
+.lamp-signal.on { 
+    background-color: #2ecc71; 
+    border-color: #27ae60; 
+    box-shadow: 0 0 15px #2ecc71;
+}
+.lamp-signal.off { 
+    background-color: #ffffff; 
+    border-color: #e74c3c; 
+}
+
+/* Optional: parameter value text bigger */
+#mainVoltageValue, #genVoltageValue, #currentValue, #powerValue, #alarmStatus {
+    font-size: 23px;  
+    font-weight: 500;
+    margin-top: 10px;
+    color: #000;
+}
+
+/* Control Cards */
+.card.control {
+    background-color: #f9f9f9;
+    border-radius: 15px;
+    padding: 25px 20px;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: 3px solid #f39542;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.card.control h3 { margin-bottom: 15px; font-size: 22px; font-weight: 700; }
+
+.card.control button {
+    background-color: #000;
+    color: #fff;
+    border: 2px solid #000;
+    font-weight: bold;
+    padding: 14px 28px;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+.card.control button:hover { 
+    background-color: #444; 
+    transform: scale(1.05);
+}
+.running { 
+    border-color: #2ecc71; 
+    color: #2ecc71;  
+    background-color: #000 !important;
+}
+.stopped { 
+    border-color: #e74c3c; 
+    color: #e74c3c; 
+    background-color: #000 !important;
+}
+
+.gen-control-full { grid-column: 1 / -1; }
+
+@media (max-width:768px){
+    .grid-display, .grid-buttons { grid-template-columns: 1fr; }
+    #mainLamp, #genLamp, .alarm-big, .gen-control-full { grid-column: 1 / -1; }
+    #dashboard h1 { font-size: 28px; }
+    #dashboard h2 { font-size: 24px; }
+    .card { min-height: 140px; padding: 20px 15px; }
+    .card.control button { padding: 12px 20px; font-size: 14px; }
+}
+
+/* Optional: lamp text bigger */
+#mainLamp h3, #genLamp h3 { font-size: 22px; }
+
+/* ===== Language Modal ===== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;    /* <— Centers vertically */
+    z-index: 9999;
+}
+
+.modal-content {
+    background: #ffffff;
+    padding: 30px;
+    width: 320px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    border: 2px solid #0078ff;
+}
+
+.modal-content h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #0078ff;
+}
+
+/* Buttons inside the language modal */
+#languageModal button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+/* English button */
+#langEn {
+    background: #0078ff;
+    color: white;
+}
+#langEn:hover {
+    background: #005fcc;
+}
+
+/* Khmer button */
+#langKh {
+    background: #ff8800;
+    color: white;
+}
+#langKh:hover {
+    background: #dd6f00;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: bold;
+    text-align: center;
+    color: #003a88;
+}
+
+/* English title (default) */
+h1[data-en] {
+    font-family: "Times New Roman";
+    font-weight: bold;
+    font-size: 42px;
+    text-align: center;
+    color: #003a88;
+}
+
+/* Khmer title */
+h1[data-kh] {
+    font-family: 'Koulen';
+    font-size: 14px;   /* smaller like h2 */
+    font-weight: normal;
+    line-height: 1.2;
+    text-align: center;
+}
+
+/* Default: English font */
+h3[data-en]{
+    font-family: "Times New Roman";
+    font-weight: bold;
+}
+
+/* Khmer font when class is added */
+h3[data-kh] {
+    font-family: "Khmer OS Battambang";
+    font-weight: bold;
+    font-size: 20px; /* adjust for Khmer */
+}
+
+/* Default: English font */
+h2[data-en]{
+    font-family: "Times New Roman";
+    font-weight: bold;
+}
+
+/* Khmer font when class is added */
+h2[data-kh] {
+    font-family: "Khmer OS Battambang";
+    font-weight: bold;
+    font-size: 20px; /* adjust for Khmer */
+}
